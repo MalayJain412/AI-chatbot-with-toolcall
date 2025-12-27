@@ -6,7 +6,7 @@ from langchain.agents import initialize_agent, AgentType
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import ChatPromptTemplate
 
-from tools import web_search, get_malay_info, get_user_email_id, send_email, save_email_details
+from tools import web_search, get_malay_info, send_email, save_email_details, save_meeting_details, schedule_meeting
 import config
 import logging
 
@@ -75,7 +75,7 @@ logger.info("LLM initialized successfully")
 # Tools
 # ---------------------------------------------------------
 logger.info("Loading tools")
-tools = [web_search, get_malay_info, send_email, save_email_details]
+tools = [web_search, get_malay_info, send_email, save_email_details, save_meeting_details, schedule_meeting]
 logger.info(f"Loaded {len(tools)} tools")
 
 # ---------------------------------------------------------

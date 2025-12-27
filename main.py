@@ -6,7 +6,7 @@ from langchain.agents import initialize_agent, AgentType
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import ChatPromptTemplate
 
-from tools import web_search, get_malay_info, get_user_email_id
+from tools import web_search, get_malay_info, get_user_email_id, send_email, save_email_details
 import config
 import logging
 
@@ -40,6 +40,14 @@ Guidelines:
 - Be concise and clear
 - Summarize tool results in natural language
 
+When a user asks you to send an email:
+
+When user asks to send an email:
+1. First call save_email_details with the full user request text
+2. Then call send_email to actually send it
+3. Confirm success politely
+4. Do not mention tool names
+
 If no tool is needed, answer directly.
 """
 
@@ -67,7 +75,7 @@ logger.info("LLM initialized successfully")
 # Tools
 # ---------------------------------------------------------
 logger.info("Loading tools")
-tools = [web_search, get_malay_info, get_user_email_id]
+tools = [web_search, get_malay_info, send_email, save_email_details]
 logger.info(f"Loaded {len(tools)} tools")
 
 # ---------------------------------------------------------

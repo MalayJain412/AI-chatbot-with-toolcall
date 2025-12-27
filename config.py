@@ -4,6 +4,7 @@ import dotenv
 
 dotenv.load_dotenv()
 
+# Azure OpenAI Configuration
 try:
     AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
     AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
@@ -14,4 +15,13 @@ try:
     logging.info(f"\n\nAzure OpenAI Deployment: {AZURE_DEPLOYMENT}")
 except Exception as e:
     logging.error("Error loading configuration from environment variables", exc_info=True)
+    raise e
+
+# Email Configuration
+try:
+    sender_email = os.getenv("SENDER_EMAIL")
+    sender_password = os.getenv("APP_PASSWORD")
+    admin_email = os.getenv("ADMIN_EMAIL")
+except Exception as e:
+    logging.error("Error loading email configuration from environment variables", exc_info=True)
     raise e

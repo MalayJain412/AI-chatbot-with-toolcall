@@ -1,0 +1,143 @@
+USER_EMAIL_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Friday AI Assistant</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:'Segoe UI', Roboto, Arial, sans-serif;-webkit-font-smoothing:antialiased;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#f3f4f6;">
+    <tr>
+      <td align="center" style="padding:40px 10px;">
+        
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width:600px;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.05);">
+          
+          <tr>
+            <td style="padding:40px 30px 20px; text-align:center;">
+              <img src="https://avatars.githubusercontent.com/u/155063571?v=4" alt="Friday AI Logo" width="80" height="80" style="display:block; margin:0 auto; border-radius:50%; border: 2px solid #f3f4f6;">
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:0 30px 20px; text-align:center;">
+              <h1 style="margin:0; color:#111827; font-size:26px; font-weight:700;">Hello! This is Friday AI Assistant</h1>
+              <div style="width:60px; height:3px; background-color:#4f46e5; margin:20px auto;"></div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:10px 40px 40px;">
+              <div style="background-color:#fafbfc; border:1px solid #e5e7eb; border-radius:8px; padding:35px; text-align:center;">
+                <div style="font-size:18px; line-height:1.8; color:#374151; font-weight:400; margin:0;">
+                  {message}
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:0 40px 40px; text-align:center;">
+              <p style="margin:0; font-size:14px; color:#6b7280;">Warm regards,</p>
+              <p style="margin:4px 0 0; font-size:16px; font-weight:700; color:#111827;">Malay</p>
+              <p style="margin:2px 0 0; font-size:12px; color:#9ca3af; font-weight:500; text-transform:uppercase; letter-spacing:1px;">AI Developer</p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="background-color:#f9fafb; padding:30px; text-align:center; border-top:1px solid #f3f4f6;">
+              <p style="margin:0; font-size:13px; color:#6b7280; line-height:1.6;">
+                If you have any questions, please email us at<br>
+                <a href="mailto:malayjain1234@gmail.com" style="color:#4f46e5; text-decoration:none; font-weight:600;">malayjain1234@gmail.com</a> or visit our FAQs.
+              </p>
+              <p style="margin:15px 0 0; font-size:12px; color:#9ca3af;">
+                🤖 Sent automatically by Friday AI Assistant
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+"""
+
+ADMIN_EMAIL_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Notification - Friday AI</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:'Segoe UI', Roboto, Arial, sans-serif;-webkit-font-smoothing:antialiased;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#f3f4f6;">
+    <tr>
+      <td align="center" style="padding:40px 10px;">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width:650px;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.05);">
+          <tr><td height="6" style="background-color:#4f46e5;"></td></tr>
+          
+          <tr>
+            <td style="padding:30px 30px 0; text-align:center;">
+              <img src="https://avatars.githubusercontent.com/u/155063571?v=4" alt="Logo" width="50" height="50" style="display:block; margin:0 auto; border-radius:50%;">
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:20px 30px 10px; text-align:center;">
+              <h2 style="margin:0; color:#6b7280; font-size:14px; font-weight:700; letter-spacing:1px; text-transform:uppercase;">Admin Notification</h2>
+              <h1 style="margin:10px 0 0; color:#111827; font-size:24px; font-weight:700;">Outbound Email Log</h1>
+              <div style="width:40px; height:2px; background-color:#e5e7eb; margin:20px auto;"></div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 40px 20px;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:20px;">
+                <tr>
+                  <td align="left" style="padding-bottom:10px;">
+                    <span style="font-size:11px; color:#9ca3af; font-weight:700; text-transform:uppercase;">Recipient</span>
+                    <div style="font-family:monospace; color:#4f46e5; font-size:14px; margin-top:4px; font-weight:600;">{to_email}</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left" style="border-top:1px solid #f3f4f6; padding-top:10px;">
+                    <span style="font-size:11px; color:#9ca3af; font-weight:700; text-transform:uppercase;">Subject Line</span>
+                    <div style="color:#374151; font-size:14px; margin-top:4px; font-weight:600;">{subject}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" style="padding:10px 40px 30px;">
+              <div style="margin-bottom:10px;">
+                <span style="font-size:12px; color:#6b7280; font-weight:700;">Message Preview:</span>
+              </div>
+              <div style="background-color:#ffffff; border:1px solid #e5e7eb; border-radius:8px; padding:25px; text-align:left;">
+                <div style="font-size:15px; line-height:1.7; color:#4b5563; white-space:pre-wrap;">{message}</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 40px 40px; text-align:center;">
+               <span style="background-color:#ecfdf5; color:#059669; padding:8px 16px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid #d1fae5; display:inline-block;">
+                ✓ Delivered Successfully
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#f9fafb; padding:20px 30px; text-align:center; border-top:1px solid #f3f4f6;">
+              <p style="margin:0; font-size:11px; color:#9ca3af; line-height:1.5;">
+                🔒 <strong>Internal Audit Log:</strong> This record is for monitoring and quality assurance purposes.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+"""

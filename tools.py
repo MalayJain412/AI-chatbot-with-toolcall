@@ -232,7 +232,10 @@ def send_meeting_confirmation(to_email, topic, date, start, end, link):
     try:
         subject = f"Meeting Confirmed: {topic}"
 
-        html = USER_EMAIL_TEMPLATE.replace(
+        #---------------------------------
+        # USER EMAIL TEMPLATE
+        #---------------------------------
+        user_html = USER_EMAIL_TEMPLATE.replace(
             "{message}",
             f"""
             Your meeting has been confirmed.<br><br>
@@ -247,16 +250,57 @@ def send_meeting_confirmation(to_email, topic, date, start, end, link):
             """
         )
 
-        msg = MIMEMultipart()
-        msg["From"] = sender_email
-        msg["To"] = to_email
-        msg["Subject"] = subject
-        msg.attach(MIMEText(html, "html"))
+        # ---------------------------------
+        # ADMIN EMAIL TEMPLATE
+        # ---------------------------------
+        admin_html = ADMIN_EMAIL_TEMPLATE.replace(
+            "{to_email}", to_email).replace("{subject}",subject).replace(
+                "{message}",
+                f"""
+                A meeting has been scheduled.<br><br>
+                
+                <b>Topic:</b> {topic}<br>
+                <b>Date:</b> {date}<br>
+                <b>Time:</b> {start} -> {end}<br>
+                <b>Attendee:</b> {to_email}<br>
+                <b>Join Link:</b> <a href="{link}">{link}</a><br><br>
 
+                Logged via Friday AI.
+                """
+            )
+        
+        # ---------------------------------
+        # SMTP SETUP
+        # ---------------------------------
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
         server.login(sender_email, sender_password)
-        server.sendmail(sender_email, to_email, msg.as_string())
+        
+        # ---------------------------------
+        # SEND TO USER
+        # ---------------------------------        
+        user_msg = MIMEMultipart()
+        user_msg["From"] = sender_email
+        user_msg["To"] = to_email
+        user_msg["Subject"] = subject
+        user_msg.attach(MIMEText(user_html, "html"))
+
+        server.sendmail(sender_email, to_email, user_msg.as_string())
+        
+        # ---------------------------------
+        # SEND TO USER
+        # ---------------------------------
+        admin_msg = MIMEMultipart()
+        admin_msg["From"] = send_email
+        admin_msg["To"] = admin_email
+        admin_msg["Subject"] = f"[MEETING CONFIRMED] {topic}"
+        admin_msg.attach(MIMEText(admin_html,"html"))
+        
+        server.sendmail(sender_email, admin_email, admin_msg.as_string())
+
+        # ---------------------------------
+        # CLOSE SETUP
+        # ---------------------------------
         server.quit()
 
         return True

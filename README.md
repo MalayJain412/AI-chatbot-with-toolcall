@@ -82,12 +82,20 @@ graph TD
 
 ```
 AI-chatbot-with-toolcall/
-├── main.py          # FastAPI app + Agent logic
-├── tools.py         # Tool functions
-├── config.py        # Azure credentials
-├── malay.txt        # Profile data file
-├── requirements.txt # Python dependencies
-└── README.md        # This file
+├── main.py              # FastAPI app + Agent logic
+├── tools.py             # Tool functions
+├── config.py            # Azure credentials
+├── malay.txt            # Profile data file
+├── requirements.txt     # Python dependencies
+├── send_email.py        # Email sending helper
+├── templates.py         # Template selection / utilities
+├── email_templates/     # HTML email templates
+│   ├── admin_templete.html
+│   └── user_templete.html
+├── frontend/            # Simple web UI for the chatbot
+│   ├── index.html
+│   └── README.md
+└── README.md            # Backend & project docs
 ```
 
 ```mermaid
@@ -97,8 +105,25 @@ graph TD
     A --> D[config.py<br/>Azure Config]
     A --> E[malay.txt<br/>Data File]
     A --> F[requirements.txt<br/>Deps]
-    A --> G[README.md<br/>Docs]
+    A --> G[send_email.py<br/>Email Helper]
+    A --> H[templates.py<br/>Template Utils]
+    A --> I[email_templates/<br/>HTML Email Templates]
+    A --> J[frontend/<br/>Web UI]
+    A --> K[README.md<br/>Docs]
 ```
+
+---
+
+## 🌐 Frontend UI
+
+The web UI for this chatbot is developed in a separate repository and mirrored here for convenience:
+
+* GitHub repo: https://github.com/MalayJain412/Frontend-UI-for-AI-Chatbot-fastapi
+* Local folder in this project: `frontend/`
+* Entry file: `frontend/index.html`
+* Frontend docs: `frontend/README.md`
+
+To try it out, start the FastAPI backend, then either open `frontend/index.html` directly in your browser or serve the `frontend/` directory with a static server (for example, VS Code Live Server or `python -m http.server`). Make sure any API base URL used in the frontend points to your running backend (for example, `http://127.0.0.1:8000/chat`).
 
 ---
 

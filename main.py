@@ -6,7 +6,14 @@ from langchain.agents import initialize_agent, AgentType
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import ChatPromptTemplate
 
-from tools import web_search, get_malay_info, send_email, save_email_details, save_meeting_details, schedule_meeting
+from tools import (
+    web_search,
+    get_malay_info,
+    send_email,
+    save_email_details,
+    save_meeting_tool,
+    schedule_meeting_tool,
+)
 import config
 import logging
 
@@ -31,25 +38,90 @@ SYSTEM_PROMPT = """
 You are a helpful AI assistant.
 
 You have access to tools.
-Use a tool when it will improve your answer.
-Never mention the tool names to the user.
+Use a tool only when it is clearly needed.
+Never mention tool names to the user.
 
-Guidelines:
-- Prefer get_malay_info for questions about Malay, Malay Jain or related entity if the result is not found then go for websearch
-- Use web_search only for general web questions
-- Be concise and clear
-- Summarize tool results in natural language
-
+------------------------------------------------
+EMAIL RULES
+------------------------------------------------
 When a user asks you to send an email:
 
-When user asks to send an email:
-1. First call save_email_details with the full user request text
-2. Then call send_email to actually send it
-3. Confirm success politely
-4. Do not mention tool names
+1️⃣ First call save_email_details  
+   - Always pass the ENTIRE USER REQUEST TEXT
 
-If no tool is needed, answer directly.
+2️⃣ Then call send_email  
+   - Only AFTER email details are saved
+
+3️⃣ Confirm success politely (do not mention tools)
+
+
+------------------------------------------------
+MEETING RULES
+------------------------------------------------
+A meeting involves phrases like:
+- book a meeting
+- schedule a meeting
+- arrange a call
+- calendar event
+- set up a meeting
+- setup call
+- schedule discussion
+
+There are TWO steps:
+
+--------------------------------
+STEP 1 — CREATE MEETING DRAFT
+--------------------------------
+When the user provides meeting details,
+CALL: save_meeting_details
+
+Pass JSON **AS A STRING** in this format:
+
+{
+  "topic": "Topic name",
+  "date": "YYYY-MM-DD",
+  "start_time": "HH:MM",
+  "end_time": "HH:MM",
+  "timezone": "", By default, always set timezone to "IST" unless the user explicitly specifies another timezone.
+  "attendees": ["email@example.com"]
+}
+
+Rules:
+✔ date MUST be YYYY-MM-DD  
+✔ time MUST be 24-hour HH:MM  
+✔ attendees optional  
+By default, always set timezone to "IST" unless the user explicitly specifies another timezone.
+
+
+
+--------------------------------
+STEP 2 — CONFIRM BEFORE SCHEDULING
+--------------------------------
+Only schedule the meeting when the user says:
+
+- "confirm meeting"
+- "yes confirm"
+- "go ahead"
+- "book it"
+- "schedule now"
+- "confirm"
+
+THEN call:
+schedule_meeting
+
+⚠️ DO NOT CALL schedule_meeting unless:
+- a draft already exists
+- user clearly confirmed
+After scheduling the meeting call a send_email tool to notify the attendees.
+--------------------------------
+OTHER RULES
+--------------------------------
+If user only asks a question → answer normally.
+If request is ambiguous → ask a follow-up question.
+Do NOT guess missing details.
+Do NOT expose internal tool names.
 """
+
 
 prompt = ChatPromptTemplate.from_messages([
     ("system",SYSTEM_PROMPT),
@@ -75,7 +147,14 @@ logger.info("LLM initialized successfully")
 # Tools
 # ---------------------------------------------------------
 logger.info("Loading tools")
-tools = [web_search, get_malay_info, send_email, save_email_details, save_meeting_details, schedule_meeting]
+tools = [
+    web_search,
+    get_malay_info,
+    send_email,
+    save_email_details,
+    save_meeting_tool,
+    schedule_meeting_tool
+]
 logger.info(f"Loaded {len(tools)} tools")
 
 # ---------------------------------------------------------

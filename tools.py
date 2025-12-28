@@ -1,4 +1,5 @@
 from langchain.tools import tool
+from langchain.tools import Tool
 import requests
 import logging
 import smtplib
@@ -226,140 +227,204 @@ def send_email(trigger: str) -> str:
 #         return f"Failed to send email: {str(e)}"
 '''
 
-# # --------------------------------------
-# # Google Calander Tools
-# # --------------------------------------
-
-# meeting_store = {}
-
-
-# # ---------- VALIDATORS ----------
-# def validate_date(date_str):
-#     try:
-#         datetime.strptime(date_str, "%Y-%m-%d")
-#         return True
-#     except:
-#         return False
-
-
-# def validate_time(t):
-#     return bool(re.fullmatch(r"\d{2}:\d{2}", t))
-
-
-# # ---------- TOOL #1 ----------
 # @tool
-# def save_meeting_details(meeting_json: str) -> str:
-#     """
-#     Save a meeting draft from structured JSON.
+def send_meeting_confirmation(to_email, topic, date, start, end, link):
+    try:
+        subject = f"Meeting Confirmed: {topic}"
 
-#     The LLM MUST pass JSON string with this structure:
+        html = USER_EMAIL_TEMPLATE.replace(
+            "{message}",
+            f"""
+            Your meeting has been confirmed.<br><br>
 
-#     {
-#       "topic": "Friday AI architecture",
-#       "date": "2025-12-28",
-#       "start_time": "16:00",
-#       "end_time": "17:00",
-#       "timezone": "Asia/Kolkata",
-#       "attendees": ["email1@example.com"]
-#     }
+            <b>Topic:</b> {topic}<br>
+            <b>Date:</b> {date}<br>
+            <b>Time:</b> {start} → {end}<br>
+            <b>Link:</b> <a href="{link}">{link}</a><br><br>
 
-#     Rules:
-#     - date MUST be YYYY-MM-DD
-#     - start_time / end_time MUST be HH:MM 24-hour
-#     - timezone default = Asia/Kolkata
-#     - attendees is optional
-#     """
+            Regards,<br>
+            Friday AI Assistant
+            """
+        )
 
-#     try:
-#         data = json.loads(meeting_json)
-#     except:
-#         return "❌ Invalid JSON. Please resend."
+        msg = MIMEMultipart()
+        msg["From"] = sender_email
+        msg["To"] = to_email
+        msg["Subject"] = subject
+        msg.attach(MIMEText(html, "html"))
 
-#     topic = data.get("topic", "Meeting")
-#     date = data.get("date")
-#     start = data.get("start_time")
-#     end = data.get("end_time")
-#     tz = data.get("timezone", "Asia/Kolkata")
-#     attendees = data.get("attendees", [])
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, to_email, msg.as_string())
+        server.quit()
 
-#     # -------- VALIDATION --------
-#     if not date or not validate_date(date):
-#         return "❌ Invalid date. Must be YYYY-MM-DD."
+        return True
 
-#     if not start or not validate_time(start):
-#         return "❌ Invalid start_time. Must be HH:MM (24hr)."
-
-#     if not end or not validate_time(end):
-#         return "❌ Invalid end_time. Must be HH:MM (24hr)."
-
-#     # save draft
-#     meeting_store.update({
-#         "topic": topic,
-#         "date": date,
-#         "start_time": start,
-#         "end_time": end,
-#         "timezone": tz,
-#         "attendees": attendees
-#     })
-
-#     return f"""
-# 📝 Meeting Draft Created
-
-# Title: {topic}
-# Date: {date}
-# Time: {start} → {end} ({tz})
-
-# Say **"confirm meeting"** to schedule.
-# """
+    except Exception as e:
+        logger.error(f"Failed to send meeting confirmation: {str(e)}")
+        return False
 
 
-# # ---------- TOOL #2 ----------
-# @tool
-# def schedule_meeting(trigger: str) -> str:
-#     """
-#     Schedule the MOST RECENT draft meeting to Google Calendar.
+# --------------------------------------
+# Google Calander Tools
+# --------------------------------------
 
-#     Only run AFTER save_meeting_details.
-#     """
+meeting_store = {}
 
-#     if not meeting_store:
-#         return "❌ No meeting draft found."
+# ---------- VALIDATORS ----------
+def validate_date(date_str):
+    try:
+        datetime.strptime(date_str, "%Y-%m-%d")
+        return True
+    except:
+        return False
 
-#     if not os.path.exists("token.json"):
-#         return "❌ Google Calendar not authorized."
 
-#     creds = Credentials.from_authorized_user_file("token.json")
-#     service = build("calendar", "v3", credentials=creds)
+def validate_time(t):
+    return bool(re.fullmatch(r"\d{2}:\d{2}", t))
 
-#     start = f"{meeting_store['date']}T{meeting_store['start_time']}:00"
-#     end = f"{meeting_store['date']}T{meeting_store['end_time']}:00"
 
-#     event = {
-#         "summary": meeting_store["topic"],
-#         "start": {"dateTime": start, "timeZone": meeting_store["timezone"]},
-#         "end": {"dateTime": end, "timeZone": meeting_store["timezone"]},
-#     }
 
-#     # optionally add attendees
-#     if meeting_store.get("attendees"):
-#         event["attendees"] = [
-#             {"email": e} for e in meeting_store["attendees"]
-#         ]
+# ---------- CORE FUNCTION #1 ----------
+def save_meeting_details(meeting_json: str) -> str:
+    """
+    Save a meeting draft from structured JSON.
+    ***ALWAYS IN "IST" ONLY***
+    Expected JSON:
 
-#     created = service.events().insert(
-#         calendarId="primary",
-#         body=event
-#     ).execute()
+    {
+      "topic": "Friday AI architecture",
+      "date": "2025-12-28",
+      "start_time": "16:00",
+      "end_time": "17:00",
+      "timezone": "IST", By default, always set timezone to "IST" unless the user explicitly specifies another timezone.
+      "attendees": ["email@example.com"]
+    }
+    
 
-#     return f"""
-# ✅ Meeting Scheduled!
+    """
 
-# Topic: {meeting_store['topic']}
-# Date: {meeting_store['date']}
-# Time: {meeting_store['start_time']} → {meeting_store['end_time']}
+    try:
+        data = json.loads(meeting_json)
+    except Exception as e:
+        return f"❌ Invalid JSON. Error: {str(e)}"
 
-# 📍 Timezone: {meeting_store['timezone']}
+    topic = data.get("topic", "Meeting")
+    date = data.get("date")
+    start = data.get("start_time")
+    end = data.get("end_time")
+    tz = data.get("timezone", "Asia/Kolkata")
+    # tz = "Asia/Kolkata"
+    attendees = data.get("attendees", [])
 
-# 🔗 Event Link:
-# {created.get("htmlLink")}
-# """
+    # -------- VALIDATION --------
+    if not date or not validate_date(date):
+        return "❌ Invalid date. Must be YYYY-MM-DD."
+
+    if not start or not validate_time(start):
+        return "❌ Invalid start_time. Must be HH:MM (24hr format)."
+
+    if not end or not validate_time(end):
+        return "❌ Invalid end_time. Must be HH:MM (24hr format)."
+
+    # save draft
+    meeting_store.update({
+        "topic": topic,
+        "date": date,
+        "start_time": start,
+        "end_time": end,
+        "timezone": tz,
+        "attendees": attendees
+    })
+
+    return f"""
+📝 Meeting Draft Created
+
+Title: {topic}
+Date: {date}
+Time: {start} → {end} ({tz})
+
+Say **"confirm meeting"** to schedule.
+"""
+
+
+
+# ---------- CORE FUNCTION #2 ----------
+def schedule_meeting(_: str) -> str:
+
+    if not meeting_store:
+        return "❌ No meeting draft found."
+
+    if not os.path.exists("token.json"):
+        return "❌ Google Calendar not authorized."
+
+    creds = Credentials.from_authorized_user_file("token.json")
+    service = build("calendar", "v3", credentials=creds)
+
+    start = f"{meeting_store['date']}T{meeting_store['start_time']}:00"
+    end = f"{meeting_store['date']}T{meeting_store['end_time']}:00"
+
+    event = {
+        "summary": meeting_store["topic"],
+        "start": {"dateTime": start, "timeZone": meeting_store["timezone"]},
+        "end": {"dateTime": end, "timeZone": meeting_store["timezone"]},
+    }
+
+    if meeting_store.get("attendees"):
+        event["attendees"] = [{"email": e} for e in meeting_store["attendees"]]
+
+    created = service.events().insert(
+        calendarId="primary",
+        body=event
+    ).execute()
+
+    event_link = created.get("htmlLink")
+
+    # -------------------------------------------------
+    # SEND CONFIRMATION EMAILS TO ATTENDEES
+    # -------------------------------------------------
+    attendees = meeting_store.get("attendees", [])
+
+    for email in attendees:
+        send_meeting_confirmation(
+            to_email=email,
+            topic=meeting_store["topic"],
+            date=meeting_store["date"],
+            start=meeting_store["start_time"],
+            end=meeting_store["end_time"],
+            link=event_link
+        )
+
+    return f"""
+✅ Meeting Scheduled!
+
+Topic: {meeting_store['topic']}
+Date: {meeting_store['date']}
+Time: {meeting_store['start_time']} → {meeting_store['end_time']}
+
+📍 Timezone: {meeting_store['timezone']}
+
+🔗 Event Link:
+{event_link}
+"""
+
+
+# --------------------------------------
+# ACTUAL LANGCHAIN TOOLS
+# --------------------------------------
+save_meeting_tool = Tool(
+    name="save_meeting_details",
+    func=save_meeting_details,
+    description="""
+Use this to create a meeting draft.
+Pass JSON as a STRING with fields:
+topic, date(YYYY-MM-DD), start_time(HH:MM), end_time(HH:MM), timezone[keep IST as default unless stated otherwise], attendees(optional)
+"""
+)
+
+schedule_meeting_tool = Tool(
+    name="schedule_meeting",
+    func=schedule_meeting,
+    description="Confirm and schedule the most recent meeting draft to Google Calendar."
+)

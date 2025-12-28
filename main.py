@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from langchain_openai import AzureChatOpenAI
@@ -28,6 +29,18 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 logger.info("FastAPI app initialized")
 
+# ------------------------- NEW -------------------------------------
+# Allow all origins (any host/port) — for development only
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],      # or ["POST", "OPTIONS"]
+    allow_headers=["*"],
+)
+# ------------------------- NEW -------------------------------------
 class ChatRequest(BaseModel):
     message: str
 

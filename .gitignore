@@ -4,3 +4,4 @@ venv/
 credentials.json
 token.json
 frontend/
+client_secret_sheets.json

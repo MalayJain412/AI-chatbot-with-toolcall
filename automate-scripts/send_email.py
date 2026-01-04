@@ -12,7 +12,7 @@ sender_password = os.getenv("APP_PASSWORD")
 
 # 2️⃣ Receiver email
 # receiver_email = os.getenv("RECEIVER_EMAIL")
-receiver_email = ["malayj1234@gmail.com"]
+receiver_email = ["connect@perfionixai.com"]
 
 # 3️⃣ Build email headers
 message = MIMEMultipart()

@@ -5,6 +5,8 @@ import logging
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+
+from sqlalchemy import values
 from config import sender_email, sender_password, admin_email
 from templates import USER_EMAIL_TEMPLATE, ADMIN_EMAIL_TEMPLATE
 import re
@@ -328,7 +330,75 @@ def validate_date(date_str):
 def validate_time(t):
     return bool(re.fullmatch(r"\d{2}:\d{2}", t))
 
+# --------------------------------------
+# Get Sheet Details Tool
+# --------------------------------------
+def get_google_sheet(meeting_json: str) -> str:
+    """
+    Get the details from the google sheets about the client
+    Expected JSON:
 
+    {
+      "name": "name",
+      "company": "company",
+      "email": "email"
+    }
+    
+
+    """
+
+    try:
+        data = json.loads(meeting_json)
+    except Exception as e:
+        return f"❌ Invalid JSON. Error: {str(e)}"
+
+    name = data.get("name", "Client")
+    company = data.get("company", "friend")
+    email = data.get("email") or None
+    work = data.get("work") or None
+    position = data.get("position") or None
+    
+
+    creds = Credentials.from_authorized_user_file(
+            "token.json",
+            ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+        )
+
+    service = build("sheets", "v4", credentials=creds)
+    
+    
+    SPREADSHEET_ID = "1GDf-hbM_FwTZ-1IuVv0GAp5zs6z74v1sRRNsrRWWHmA"
+
+    result = service.spreadsheets().values().get(
+        spreadsheetId=SPREADSHEET_ID,
+        range="Users!A1:F100"
+    ).execute()
+
+    values = result.get("values", [])
+
+    headers = [h.strip().lower() for h in values[0]]
+    rows = values[1:]
+
+    for row in rows:
+        record = dict(zip(headers, row))
+
+        row_name = record.get("name","").strip().lower()
+        row_company = record.get("company","").strip().lower()
+
+        if name in row_name and (not company or company in row_company):
+
+            logger.info(f"Match found: {record}")
+
+            return json.dumps({
+                "name": record.get("name"),
+                "email": record.get("email"),
+                "company": record.get("company"),
+                "position": record.get("position"),
+                "work": record.get("work"),
+                "contact": record.get("contact")
+            })
+
+    return "❌ No matching client found."
 
 # ---------- CORE FUNCTION #1 ----------
 def save_meeting_details(meeting_json: str) -> str:
@@ -471,4 +541,15 @@ schedule_meeting_tool = Tool(
     name="schedule_meeting",
     func=schedule_meeting,
     description="Confirm and schedule the most recent meeting draft to Google Calendar."
+)
+
+
+get_google_sheet_tool = Tool(
+    name="get_google_sheet",
+    func=get_google_sheet,
+    description="""
+    Use this to get client details from the Google Sheet.
+    Pass JSON as a STRING with fields:
+name, company, email (all optional, but at least one should be present)
+    """
 )

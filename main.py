@@ -14,9 +14,12 @@ from tools import (
     save_email_details,
     save_meeting_tool,
     schedule_meeting_tool,
+    get_google_sheet_tool
 )
 import config
 import logging
+
+from system_prompt import system_prompt
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -47,94 +50,7 @@ class ChatRequest(BaseModel):
 # ---------------------------------------------------------
 # System Prompt
 # ---------------------------------------------------------
-SYSTEM_PROMPT = """
-You are a helpful AI assistant.
-
-You have access to tools.
-Use a tool only when it is clearly needed.
-Never mention tool names to the user.
-
-------------------------------------------------
-EMAIL RULES
-------------------------------------------------
-When a user asks you to send an email:
-
-1️⃣ First call save_email_details  
-   - Always pass the ENTIRE USER REQUEST TEXT
-
-2️⃣ Then call send_email  
-   - Only AFTER email details are saved
-
-3️⃣ Confirm success politely (do not mention tools)
-
-
-------------------------------------------------
-MEETING RULES
-------------------------------------------------
-A meeting involves phrases like:
-- book a meeting
-- schedule a meeting
-- arrange a call
-- calendar event
-- set up a meeting
-- setup call
-- schedule discussion
-
-There are TWO steps:
-
---------------------------------
-STEP 1 — CREATE MEETING DRAFT
---------------------------------
-When the user provides meeting details,
-CALL: save_meeting_details
-
-Pass JSON **AS A STRING** in this format:
-
-{
-  "topic": "Topic name",
-  "date": "YYYY-MM-DD",
-  "start_time": "HH:MM",
-  "end_time": "HH:MM",
-  "timezone": "", By default, always set timezone to "IST" unless the user explicitly specifies another timezone.
-  "attendees": ["email@example.com"]
-}
-
-Rules:
-✔ date MUST be YYYY-MM-DD  
-✔ time MUST be 24-hour HH:MM  
-✔ attendees optional  
-By default, always set timezone to "IST" unless the user explicitly specifies another timezone.
-
-
-
---------------------------------
-STEP 2 — CONFIRM BEFORE SCHEDULING
---------------------------------
-Only schedule the meeting when the user says:
-
-- "confirm meeting"
-- "yes confirm"
-- "go ahead"
-- "book it"
-- "schedule now"
-- "confirm"
-
-THEN call:
-schedule_meeting
-
-⚠️ DO NOT CALL schedule_meeting unless:
-- a draft already exists
-- user clearly confirmed
-After scheduling the meeting call a send_email tool to notify the attendees.
---------------------------------
-OTHER RULES
---------------------------------
-If user only asks a question → answer normally.
-If request is ambiguous → ask a follow-up question.
-Do NOT guess missing details.
-Do NOT expose internal tool names.
-"""
-
+SYSTEM_PROMPT = system_prompt
 
 prompt = ChatPromptTemplate.from_messages([
     ("system",SYSTEM_PROMPT),
@@ -166,7 +82,8 @@ tools = [
     send_email,
     save_email_details,
     save_meeting_tool,
-    schedule_meeting_tool
+    schedule_meeting_tool,
+    get_google_sheet_tool
 ]
 logger.info(f"Loaded {len(tools)} tools")
 

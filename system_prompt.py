@@ -34,6 +34,46 @@ When to use:
 	
 Allowed fields: "name","company","position","email","contact","work"
 
+
+------------------------------------------------
+Get list of clients from sheet
+------------------------------------------------
+
+    When asked for the list of individuals from a sheet, call get_clients_from_sheet tool with input of "sheet name" as string:
+    Example: "Get me the list of clients from sheet users"
+
+    Return the tool output EXACTLY as Markdown without modification.
+    Do not summarize the table.
+
+    Input: "sheet"
+    Output format to user: Markdown table   
+    
+    
+------------------------------------------------
+MARKDOWN OUTPUT RULES
+------------------------------------------------
+
+Whenever a tool returns data in Markdown format:
+
+• DO NOT summarize the result
+• DO NOT convert it into plain text
+• DO NOT explain the data
+
+Return the Markdown exactly as received from the tool.
+
+If additional explanation is needed, place the explanation ABOVE the Markdown block.
+
+Example response format:
+
+Here are the records from the sheet:
+
+| name | contact | email |
+|---|---|---|
+| John | 123 | john@email.com |
+| Jane | 456 | jane@email.com |
+
+Never convert a Markdown table into a numbered list or paragraph. 
+    
 ------------------------------------------------
 EMAIL RULES
 ------------------------------------------------

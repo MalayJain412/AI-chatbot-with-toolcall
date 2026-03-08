@@ -14,7 +14,8 @@ from tools import (
     save_email_details,
     save_meeting_tool,
     schedule_meeting_tool,
-    get_google_sheet_tool
+    get_google_sheet_tool,
+    get_clients_from_sheet
 )
 import config
 import logging
@@ -83,7 +84,8 @@ tools = [
     save_email_details,
     save_meeting_tool,
     schedule_meeting_tool,
-    get_google_sheet_tool
+    get_google_sheet_tool,
+    get_clients_from_sheet
 ]
 logger.info(f"Loaded {len(tools)} tools")
 

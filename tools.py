@@ -400,6 +400,47 @@ def get_google_sheet(meeting_json: str) -> str:
 
     return "❌ No matching client found."
 
+@tool
+def get_clients_from_sheet(sheet: str) -> str:
+    """
+        Get details of the people on the particular sheet. The input will be the name of the sheet. 
+        You will return the details of the people in that sheet in a JSON STRING format. 
+    """
+    
+    creds = Credentials.from_authorized_user_file(
+            "token.json",
+            ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+        )
+    
+    service = build("sheets", "v4", credentials=creds)
+    
+    SPREADSHEET_ID = "1GDf-hbM_FwTZ-1IuVv0GAp5zs6z74v1sRRNsrRWWHmA"
+    
+    result = service.spreadsheets().values().get(
+        spreadsheetId=SPREADSHEET_ID,
+        range=f"{sheet}!A1:F100"
+    ).execute()
+    
+    values = result.get("values", [])
+    
+    # Convert the values to a list of dictionaries
+    if not values:
+        return "❌ No data found in the specified sheet."
+
+    headers = [h.strip().lower() for h in values[0]]
+    rows = values[1:]
+
+    header_row = "| " + " | ".join(headers) + " |"
+    separator_row = "| " + " | ".join(["---"] * len(headers)) + " |"
+    
+    table_rows = []
+    for row in rows:
+        row = row + [""] * (len(headers) - len(row))
+        table_rows.append("| " + " | ".join(row) + " |")
+        
+    markdown_table = "\n".join([header_row, separator_row] + table_rows)
+    
+    return markdown_table
 # ---------- CORE FUNCTION #1 ----------
 def save_meeting_details(meeting_json: str) -> str:
     """
